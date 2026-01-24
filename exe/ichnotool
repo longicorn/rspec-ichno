@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+require 'json'
+
+json = JSON.parse(File.read(ARGV[0]))
+json_proc = {}
+json.each do |data|
+  id = "#{data['pid']}_#{data['tid']}"
+  json_proc[id] ||= []
+  json_proc[id] << data
+end
+
+caches = {}
+json_proc.each do |id, jsn|
+  tmp = []
+  jsn.each do |data|
+    next if data['path'].include?('ichno.cache.json')
+    next if data['path'].match?('\/cache\/')
+    next if data['path'].match?('\/tmp\/')
+    next if data['path'].match?('\/log\/')
+    if data['path'].match?(/.*?_spec.rb/)
+      if tmp.size.nonzero?
+        caches[tmp[0]['path']] = tmp
+        tmp = []
+      end
+      tmp << data
+      next
+    end
+
+    if tmp.size.nonzero?
+      tmp << data
+    end
+  end
+  caches[tmp[0]['path']] = tmp if tmp.size.nonzero?
+end
+
+old_cache = {}
+old_cache ||= JSON.parse(File.read('ichno.cache.json')) if File.exist?('ichno.cache.json')
+caches.each do |path, data|
+  old_cache[path] = data
+end
+File.write('ichno.cache.json', JSON.dump(old_cache))
