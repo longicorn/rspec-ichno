@@ -21,7 +21,7 @@ bundle install
 rspec-ichno はデフォルトで無効になっています。
 
 全てのテストケースでスキップを有効化する場合
-(もしichno.cache.jsonが存在し、コードが変更されていなければ、テストはスキップされます。)
+(もしキャッシュが存在し、コードが変更されていなければ、テストはスキップされます。)
 ```bash
 $ ICHNO=true bin/ichno -o result.json bundle exec rspec
 $ ICHNO=1 bin/ichno -o result.json bundle exec rspec
@@ -38,6 +38,14 @@ it "test", ichno: false do
   # do something
 end
 ```
+
+## Configuration
+### cache directory
+`tmp/cache/ichno` がキャッシュディレクトリです
+`ICHNO_DIR` で設定可能です
+
+### cache file
+`manifest.json` がキャッシュファイルです
 
 ## License
 
