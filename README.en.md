@@ -37,6 +37,14 @@ it "test", ichno: false do
 end
 ```
 
+## Configuration
+### cache directory
+cache directory is `tmp/cache/ichno`
+set the cache directory to `ICHNO_DIR`
+
+### cache file
+cache file is `manifest.json`
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
