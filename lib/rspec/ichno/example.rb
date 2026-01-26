@@ -14,14 +14,18 @@ class RspecIchno
 
     def skip?
       path = @example.metadata[:absolute_file_path]
-      return false unless @cache[path]
+      cache = @cache[path]
+      return false unless cache
 
-      @cache[path].each do |cache|
-        cache_path = cache['path']
+      return false if cache['failed']
+      cache['data'].each do |data|
+        cache_path = data['path']
         @@md5s[cache_path] ||= Digest::MD5.file(cache_path).hexdigest
-        return false if cache['md5'] != @@md5s[cache_path]
+        return false if data['md5'] != @@md5s[cache_path]
       end
       true
+    rescue
+      false
     end
   end
 end
