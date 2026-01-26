@@ -10,7 +10,10 @@ class RspecIchno
 
   def initialize
     @disable = false
-    @json = JSON.parse(File.read('ichno.cache.json'))
+    ichno_dir = ENV['ICHNO_DIR'] || 'tmp/cache/ichno/'
+    json_path = Rails.root.join("#{ichno_dir}/manifest.json")
+    @cache = JSON.parse(File.read(json_path)) if File.exist?(json_path)
+    @disable = !(@cache['version'] != RUBY_VERSION)
   end
   attr_accessor :disable
 
@@ -18,7 +21,7 @@ class RspecIchno
     if @disable
       example.run
     else
-      example = Example.new(example, cache: @json)
+      example = Example.new(example, cache: @cache)
       yield example
     end
   end
