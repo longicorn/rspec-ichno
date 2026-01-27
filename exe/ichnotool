@@ -1,11 +1,41 @@
 #!/usr/bin/env ruby
 
 require 'json'
+require 'pathname'
 
 CACHE_DIR = ENV['ICHNO_DIR'] || 'tmp/cache/ichno'
 CACHE_PATH = "#{CACHE_DIR}/manifest.json"
 
-def parse_ichno(path)
+def elf_binary?(path)
+  return false if File.directory?(path)
+
+  header = File.open(path, 'r').read(4)
+  header == "\x7fELF"
+end
+
+def parse_ichno_global(path)
+  json = JSON.parse(File.read(path))
+  caches = {}
+
+  skip_paths = ['/etc', '/lib', '/cache/', '/log/', '.bundle']
+  json.each do |data|
+    next if skip_paths.detect{|pth|data['path'].include?(pth)}
+    next if data['path'].include?('/usr') && !data['path'].include?('/usr/local')
+    next unless File.exist?(data['path'])
+    next if File.lstat(data['path']).symlink?
+    next if elf_binary?(data['path'])
+    next if data['path'].include?(Pathname(ENV['HOME']).join('.local').to_s)
+    next if data['path'].include?(Pathname(ENV['HOME']).join('.cache').to_s)
+    next if data['path'].include?('.log')
+    break if data['path'].include?('_spec.rb')
+
+    caches[data['path']] = data
+  end
+
+  caches
+end
+
+def parse_ichno_spec(path)
   json = JSON.parse(File.read(path))
   json_proc = {}
   json.each do |data|
@@ -61,12 +91,14 @@ def parse_rspec(path)
   ret
 end
 
-ichno_caches = parse_ichno(ARGV[0])
+ichno_global_caches = parse_ichno_global(ARGV[0])
+ichno_caches = parse_ichno_spec(ARGV[0])
 rspec_caches = parse_rspec(ARGV[1])
 
 cache = {}
 cache ||= JSON.parse(File.read(CACHE_PATH)) if File.exist?(CACHE_PATH)
 cache['version'] = RUBY_VERSION
+cache['global'] = ichno_global_caches
 ichno_caches.each do |path, data|
   tmp = {}
   tmp['data'] = data
