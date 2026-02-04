@@ -53,10 +53,9 @@ def parse_rspec(path)
   rspec_result = JSON.parse(File.read(path))
   examples = rspec_result['examples'].select{|e|e['status'] == 'failed'}
   return ret if examples.count.zero?
-  ret['paths'] = {}
   examples.each do |example|
     path = example['id'].split('[').first
-    ret['paths'][File.absolute_path(path)] = true
+    ret[File.absolute_path(path)] = true
   end
 
   ret
