@@ -8,6 +8,7 @@ end
 
 RSpec.configuration.before(:suite) do |config|
   RSpec.ichno.disable = !(['1', 'true'].include?(ENV['ICHNO']))
+  RSpec.ichno.check_global?
 end
 
 RSpec.configuration.around(:each) do |example|

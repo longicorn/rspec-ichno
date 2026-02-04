@@ -13,9 +13,23 @@ class RspecIchno
     ichno_dir = ENV['ICHNO_DIR'] || 'tmp/cache/ichno/'
     json_path = Rails.root.join("#{ichno_dir}/manifest.json")
     @cache = JSON.parse(File.read(json_path)) if File.exist?(json_path)
-    @disable = !(@cache['version'] != RUBY_VERSION)
   end
   attr_accessor :disable
+
+  def check_global?
+    return true if @disable
+
+    @disable = (@cache['version'] != RUBY_VERSION)
+    return true if @disable
+
+    @cache['global'].each do |path, data|
+      if data['md5'] != Digest::MD5.file(path).hexdigest
+        @disable = true
+        return true
+      end
+    end
+    return false
+  end
 
   def spec(example)
     if @disable
